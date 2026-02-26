@@ -1,0 +1,56 @@
+<div class="profile-page">
+  <div class="profile-card" *ngIf="user">
+    <h2>My Profile</h2>
+
+    <div *ngIf="success" class="success-msg">{{ success }}</div>
+    <div *ngIf="error"   class="error-msg">{{ error }}</div>
+
+    <div class="info-section">
+      <!-- Read mode -->
+      <ng-container *ngIf="!editing">
+        <div class="info-row">
+          <span class="label">Name</span>
+          <span class="value">{{ user.firstName }} {{ user.lastName }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Email</span>
+          <span class="value">{{ user.email }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Phone</span>
+          <span class="value">{{ user.phone || '—' }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Shipping Address</span>
+          <span class="value">{{ user.shippingAddress || '—' }}</span>
+        </div>
+        <button class="btn-primary" (click)="startEdit()">Edit Details</button>
+      </ng-container>
+
+      <!-- Edit mode -->
+      <ng-container *ngIf="editing">
+        <label>First Name
+          <input type="text" [(ngModel)]="firstName" name="firstName" />
+        </label>
+        <label>Last Name
+          <input type="text" [(ngModel)]="lastName" name="lastName" />
+        </label>
+        <label>Email
+          <input type="email" [(ngModel)]="email" name="email" />
+        </label>
+        <label>Phone
+          <input type="tel" [(ngModel)]="phone" name="phone" />
+        </label>
+        <label>Shipping Address
+          <input type="text" [(ngModel)]="address" name="address" />
+        </label>
+        <div class="btn-row">
+          <button class="btn-primary" (click)="saveChanges()" [disabled]="loading">
+            {{ loading ? 'Saving...' : 'Save' }}
+          </button>
+          <button class="btn-secondary" (click)="cancelEdit()">Cancel</button>
+        </div>
+      </ng-container>
+    </div>
+  </div>
+</div>

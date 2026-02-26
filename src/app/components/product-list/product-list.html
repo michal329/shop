@@ -1,0 +1,153 @@
+<div class="pl-page">
+
+  <!-- Page Header -->
+  <div class="pl-header">
+    <div class="pl-header__title">
+      <h1>{{ selectedCategory ? 'Category Products' : 'All Products' }}</h1>
+      <p class="pl-header__subtitle" *ngIf="pageInfo">{{ pageInfo.totalItems }} items available</p>
+    </div>
+
+    <!-- Search + filter bar -->
+    <div class="pl-toolbar">
+      <div class="pl-search">
+        <svg class="pl-search__icon" viewBox="0 0 20 20" fill="none" stroke="currentColor">
+          <circle cx="8.5" cy="8.5" r="5.5"/>
+          <line x1="13" y1="13" x2="18" y2="18"/>
+        </svg>
+        <input
+          type="text"
+          class="pl-search__input"
+          placeholder="Search products..."
+          [(ngModel)]="searchTerm"
+        />
+        <button class="pl-search__clear" *ngIf="searchTerm" (click)="searchTerm = ''">✕</button>
+      </div>
+
+      <button class="pl-filter-btn" [class.pl-filter-btn--active]="filterPanelOpen" (click)="toggleFilterPanel()">
+        <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
+          <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L13 10.414V15a1 1 0 01-.447.894l-4 2.5A1 1 0 017 17.5V10.414L3.293 6.707A1 1 0 013 6V3z"/>
+        </svg>
+        Filters
+        <span class="pl-filter-badge" *ngIf="hasActiveFilters">●</span>
+      </button>
+
+      <select class="pl-sort-select" [(ngModel)]="sortBy">
+        <option value="default">Sort: Default</option>
+        <option value="price-asc">Price: Low → High</option>
+        <option value="price-desc">Price: High → Low</option>
+        <option value="name-asc">Name: A → Z</option>
+        <option value="name-desc">Name: Z → A</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Filter Panel -->
+  <div class="pl-filter-panel" *ngIf="filterPanelOpen">
+    <div class="pl-filter-panel__inner">
+      <div class="pl-filter-group">
+        <label>Min Price ($)</label>
+        <input type="number" [(ngModel)]="minPrice" placeholder="0" min="0" />
+      </div>
+      <div class="pl-filter-group">
+        <label>Max Price ($)</label>
+        <input type="number" [(ngModel)]="maxPrice" placeholder="Any" min="0" />
+      </div>
+      <button class="pl-clear-btn" *ngIf="hasActiveFilters" (click)="clearFilters()">
+        Clear All Filters
+      </button>
+    </div>
+  </div>
+
+  <!-- Active filters tags -->
+  <div class="pl-active-filters" *ngIf="hasActiveFilters && !isLoading">
+    <span class="pl-active-filters__label">Active filters:</span>
+    <span class="pl-tag" *ngIf="searchTerm">"{{ searchTerm }}" <button (click)="searchTerm=''">✕</button></span>
+    <span class="pl-tag" *ngIf="minPrice != null">Min ${{ minPrice }} <button (click)="minPrice=null">✕</button></span>
+    <span class="pl-tag" *ngIf="maxPrice != null">Max ${{ maxPrice }} <button (click)="maxPrice=null">✕</button></span>
+    <span class="pl-results-count">{{ filteredProducts.length }} result{{ filteredProducts.length !== 1 ? 's' : '' }}</span>
+  </div>
+
+  <!-- Loading spinner -->
+  <div class="pl-spinner-wrap" *ngIf="isLoading">
+    <div class="pl-spinner"></div>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="errorMsg && !isLoading" class="pl-error">
+    <span>⚠️</span> {{ errorMsg }}
+  </div>
+
+  <!-- Product Grid -->
+  <div *ngIf="!isLoading && filteredProducts.length > 0" class="pl-grid">
+    <div
+      class="pl-card"
+      *ngFor="let product of filteredProducts"
+      (click)="viewDetails(product)"
+    >
+      <!-- Out of stock badge -->
+      <div class="pl-card__badge pl-card__badge--oos" *ngIf="product.quantity <= 0">Out of Stock</div>
+
+      <!-- Product image: real image from API, fallback to emoji -->
+      <div class="pl-card__img">
+        <img
+          *ngIf="product.imageUrl"
+          [src]="product.imageUrl"
+          [alt]="product.productName"
+          class="pl-card__img-real"
+          (error)="onImgError($event)"
+        />
+        <span *ngIf="!product.imageUrl">🛍️</span>
+      </div>
+
+      <div class="pl-card__body">
+        <h3 class="pl-card__name">{{ product.productName }}</h3>
+        <p class="pl-card__desc">{{ product.description }}</p>
+        <p class="pl-card__stock" [class.pl-card__stock--low]="product.quantity > 0 && product.quantity <= 5">
+          <ng-container *ngIf="product.quantity > 0">{{ product.quantity }} in stock</ng-container>
+          <ng-container *ngIf="product.quantity <= 0">Out of stock</ng-container>
+        </p>
+        <div class="pl-card__footer">
+          <span class="pl-card__price">${{ product.price | number:'1.2-2' }}</span>
+          <button
+            class="pl-card__btn"
+            [class.pl-card__btn--added]="addedProductId === product.productId"
+            [class.pl-card__btn--disabled]="isMaxInCart(product)"
+            [disabled]="isMaxInCart(product)"
+            (click)="addToCart(product, $event)"
+          >
+            <span *ngIf="addedProductId !== product.productId && !isMaxInCart(product)">+ Cart</span>
+            <span *ngIf="addedProductId === product.productId">✓ Added</span>
+            <span *ngIf="isMaxInCart(product) && addedProductId !== product.productId">Max</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty state (filters active but no match) -->
+  <div *ngIf="!isLoading && products.length > 0 && filteredProducts.length === 0" class="pl-empty">
+    <div class="pl-empty__icon">🔍</div>
+    <h3>No products match your filters</h3>
+    <p>Try adjusting or clearing your filters</p>
+    <button class="pl-empty__btn" (click)="clearFilters()">Clear Filters</button>
+  </div>
+
+  <!-- Empty state (no products from API) -->
+  <div *ngIf="!isLoading && !errorMsg && products.length === 0" class="pl-empty">
+    <div class="pl-empty__icon">📦</div>
+    <h3>No products found</h3>
+    <p>Check back soon for new arrivals</p>
+  </div>
+
+  <!-- Pagination -->
+  <div *ngIf="pageInfo && pageInfo.totalItems > pageSize" class="pl-pagination">
+    <button class="pl-pagination__btn" (click)="prevPage()" [disabled]="!pageInfo.hasPreviousPage">
+      ← Prev
+    </button>
+    <span class="pl-pagination__info">Page {{ currentPage }} of {{ Math.ceil(pageInfo.totalItems / pageSize) }}</span>
+    <button class="pl-pagination__btn" (click)="nextPage()" [disabled]="!pageInfo.hasNextPage">
+      Next →
+    </button>
+  </div>
+
+</div>

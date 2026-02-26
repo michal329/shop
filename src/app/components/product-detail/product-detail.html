@@ -1,0 +1,93 @@
+<div class="pd-page">
+
+  <button class="pd-back" (click)="goBack()">
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" width="16" height="16">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10H5m5-5l-5 5 5 5"/>
+    </svg>
+    Back to Products
+  </button>
+
+  <!-- Spinner -->
+  <div class="pd-spinner-wrap" *ngIf="isLoading">
+    <div class="pd-spinner"></div>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="errorMsg && !isLoading" class="pd-error">
+    <span>⚠️</span> {{ errorMsg }}
+  </div>
+
+  <!-- Product Card -->
+  <div *ngIf="product && !isLoading" class="pd-card">
+
+    <!-- Image section: real image from API, fallback to emoji -->
+    <div class="pd-card__gallery">
+      <div class="pd-card__img-main" [class.pd-card__img-main--has-img]="product.imageUrl">
+        <img
+          *ngIf="product.imageUrl"
+          [src]="product.imageUrl"
+          [alt]="product.productName"
+          class="pd-card__img-real"
+          (error)="onImgError($event)"
+        />
+        <span *ngIf="!product.imageUrl">🛍️</span>
+      </div>
+    </div>
+
+    <div class="pd-card__info">
+      <div class="pd-card__meta">
+        <span class="pd-card__cat">{{ getCategoryName(product.categoryId) }}</span>
+      </div>
+
+      <h1 class="pd-card__name">{{ product.productName }}</h1>
+      <p class="pd-card__desc">{{ product.description }}</p>
+
+      <div class="pd-card__price-row">
+        <span class="pd-card__price">${{ product.price | number:'1.2-2' }}</span>
+        <span class="pd-card__stock"
+          [class.pd-card__stock--oos]="isOutOfStock"
+          [class.pd-card__stock--low]="!isOutOfStock && product.quantity > 0 && product.quantity <= 5">
+          <ng-container *ngIf="isOutOfStock">✕ Out of Stock</ng-container>
+          <ng-container *ngIf="!isOutOfStock && product.quantity > 0 && product.quantity <= 5">⚠ Only {{ product.quantity }} left!</ng-container>
+          <ng-container *ngIf="!isOutOfStock && product.quantity > 5">✓ In Stock ({{ product.quantity }})</ng-container>
+          <ng-container *ngIf="!isOutOfStock && (product.quantity == null)">✓ In Stock</ng-container>
+        </span>
+      </div>
+
+      <div class="pd-divider"></div>
+
+      <!-- Quantity + Add to Cart -->
+      <ng-container *ngIf="!isOutOfStock">
+        <div class="pd-qty-wrap">
+          <span class="pd-qty-label">Quantity</span>
+          <div class="pd-qty">
+            <button class="pd-qty__btn" (click)="decreaseQty()" [disabled]="quantity <= 1">−</button>
+            <span class="pd-qty__val">{{ quantity }}</span>
+            <button class="pd-qty__btn" (click)="increaseQty()"
+              [disabled]="product.quantity != null && alreadyInCart + quantity >= maxAvailable">+</button>
+          </div>
+          <span class="pd-qty__hint" *ngIf="alreadyInCart > 0">
+            ({{ alreadyInCart }} already in cart)
+          </span>
+        </div>
+
+        <button
+          class="pd-add-btn"
+          [class.pd-add-btn--added]="added"
+          [disabled]="!canAddMore"
+          (click)="addToCart()"
+        >
+          <span *ngIf="!added && canAddMore">🛒 Add to Cart</span>
+          <span *ngIf="!added && !canAddMore">Maximum in Cart</span>
+          <span *ngIf="added">✓ Added to Cart!</span>
+        </button>
+      </ng-container>
+
+      <!-- Out of Stock button -->
+      <button class="pd-add-btn pd-add-btn--oos" *ngIf="isOutOfStock" disabled>
+        Out of Stock
+      </button>
+    </div>
+  </div>
+
+</div>

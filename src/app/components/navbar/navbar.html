@@ -1,0 +1,69 @@
+<nav class="navbar">
+  <div class="nav-container">
+    <!-- Logo: fix — link to /products directly instead of / -->
+    <a routerLink="/" class="logo">
+      <span class="logo-icon">🏡</span>
+      <span class="logo-text">HomeStyle</span>
+    </a>
+
+    <!-- Main Navigation -->
+    <div class="nav-links">
+      <!-- Categories Dropdown -->
+      <div class="categories-wrapper">
+        <button 
+          class="categories-btn" 
+          (click)="toggleCategories()"
+          [class.active]="isCategoriesOpen()">
+          <span>Categories</span>
+          <span class="arrow" [class.open]="isCategoriesOpen()">▼</span>
+        </button>
+
+        @if (isCategoriesOpen()) {
+          <div class="categories-dropdown">
+            @for (category of categories; track category.name) {
+              <a 
+                [routerLink]="category.route"
+                [queryParams]="{ category: category.id }"
+                class="category-item"
+                [class.active]="currentCategory() === category.id"
+                (click)="isCategoriesOpen.set(false)">
+                <span class="category-icon">{{ category.icon }}</span>
+                <span class="category-name">{{ category.name }}</span>
+              </a>
+            }
+          </div>
+        }
+      </div>
+
+      <a routerLink="/products" routerLinkActive="active" class="nav-link">
+        All Products
+      </a>
+
+      <!-- Cart -->
+      <a routerLink="/cart" routerLinkActive="active" class="cart-link">
+        <svg class="cart-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M9 2L7.17 4H4a2 2 0 00-2 2v13a2 2 0 002 2h16a2 2 0 002-2V6a2 2 0 00-2-2h-3.17L15 2H9z"/>
+          <circle cx="12" cy="13" r="4"/>
+        </svg>
+        <span class="cart-text">Cart</span>
+        @if (cartCount() > 0) {
+          <span class="cart-badge">{{ cartCount() }}</span>
+        }
+      </a>
+
+      <!-- Auth Links -->
+      @if (authService.isLoggedIn) {
+        <a routerLink="/profile" routerLinkActive="active" class="nav-link">Profile</a>
+        <a [routerLink]="isAdmin ? '/admin/orders' : '/orders'" routerLinkActive="active" class="nav-link">Orders</a>
+        
+        @if (isAdmin) {
+          <a routerLink="/admin" routerLinkActive="active" class="nav-link admin-link">Admin</a>
+        }
+        
+        <button (click)="logout()" class="logout-btn">Logout</button>
+      } @else {
+        <a routerLink="/login" routerLinkActive="active" class="login-btn">Login</a>
+      }
+    </div>
+  </div>
+</nav>

@@ -1,0 +1,68 @@
+<div class="admin-section">
+  <div class="section-header">
+    <h2>Manage Products</h2>
+    <button class="btn-primary" (click)="openAddForm()">+ Add Product</button>
+  </div>
+
+  <div *ngIf="success" class="success-msg">{{ success }}</div>
+  <div *ngIf="error"   class="error-msg">{{ error }}</div>
+
+  <!-- Add / Edit Form -->
+  <div class="form-panel" *ngIf="showForm">
+    <h3>{{ isEditing ? 'Edit Product' : 'New Product' }}</h3>
+    <div class="form-grid">
+      <label>Product Name *
+        <input type="text" [(ngModel)]="form.productName" name="productName" />
+      </label>
+      <label>Price *
+        <input type="number" [(ngModel)]="form.price" name="price" min="0" />
+      </label>
+      <label>Quantity *
+        <input type="number" [(ngModel)]="form.quantity" name="quantity" min="0" />
+      </label>
+      <label>Category *
+        <select [(ngModel)]="form.categoryId" name="categoryId">
+          <option *ngFor="let c of categories" [value]="c.categoryId">{{ c.categoryName }}</option>
+        </select>
+      </label>
+      <label class="full">Description
+        <textarea [(ngModel)]="form.description" name="description" rows="3"></textarea>
+      </label>
+      <label class="full">Image URL
+        <input type="url" [(ngModel)]="form.imageUrl" name="imageUrl" />
+      </label>
+    </div>
+    <div class="btn-row">
+      <button class="btn-primary" (click)="submitForm()">{{ isEditing ? 'Save Changes' : 'Add Product' }}</button>
+      <button class="btn-secondary" (click)="cancelForm()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Products Table -->
+  <div *ngIf="loading" class="loading">Loading...</div>
+  <table class="data-table" *ngIf="!loading">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Category</th>
+        <th>Price</th>
+        <th>Stock</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let p of products">
+        <td>{{ p.productId }}</td>
+        <td>{{ p.productName }}</td>
+        <td>{{ categoryName(p.categoryId) }}</td>
+        <td>${{ p.price }}</td>
+        <td>{{ p.quantity }}</td>
+        <td>
+          <button class="btn-edit"   (click)="openEditForm(p)">Edit</button>
+          <button class="btn-delete" (click)="deleteProduct(p)">Delete</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
