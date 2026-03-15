@@ -14,7 +14,7 @@
 
   <!-- Error -->
   <div *ngIf="errorMsg && !isLoading" class="pd-error">
-    <span>⚠️</span> {{ errorMsg }}
+    <span>⚠️</span> {{ errorMsg }}  
   </div>
 
   <!-- Product Card -->
@@ -25,7 +25,7 @@
       <div class="pd-card__img-main" [class.pd-card__img-main--has-img]="product.imageUrl">
         <img
           *ngIf="product.imageUrl"
-          [src]="product.imageUrl"
+          [src]="'/images/' + product.imageUrl"
           [alt]="product.productName"
           class="pd-card__img-real"
           (error)="onImgError($event)"
